@@ -11,8 +11,8 @@ public class Factory extends JFrame {
     int boxX = 200;
     int boxY = 0;
     
-    ImageIcon factoryIcon = null;
-    ImageIcon boxIcon = null;
+    Image factoryImage = null;
+    Image boxImage = null;
     
     public static void main(String[] args) {
         new Factory();
@@ -24,35 +24,75 @@ public class Factory extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
-
+        // ЗАГРУЗКА КАРТИНОК ВСЕМИ СПОСОБАМИ
         try {
-            factoryIcon = new ImageIcon("factory.png");
-            boxIcon = new ImageIcon("box.png");
-        } catch (Exception e) {
+            // Способ 1: Через класс (самый надежный)
+            factoryImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("factory.png"));
+            boxImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("box.png"));
+            
+            // Ждем загрузки
+            MediaTracker tracker = new MediaTracker(this);
+            if (factoryImage != null) tracker.addImage(factoryImage, 0);
+            if (boxImage != null) tracker.addImage(boxImage, 1);
+            tracker.waitForAll();
+            
+        } catch (Exception e1) {
+            try {
+                // Способ 2: Простые пути
+                factoryImage = new ImageIcon("factory.png").getImage();
+                boxImage = new ImageIcon("box.png").getImage();
+            } catch (Exception e2) {
+                // Способ 3: Из src
+                factoryImage = new ImageIcon("src/factory/factory.png").getImage();
+                boxImage = new ImageIcon("src/factory/box.png").getImage();
+            }
         }
         
-
+        // Проверка
+        if (factoryImage == null) {
+            System.out.println("ВНИМАНИЕ: Картинки не загружены!");
+            System.out.println("Создай factory.png и box.png в папке с Factory.java");
+        } else {
+            System.out.println("Картинки загружены!");
+        }
+        
+        // Панель игры
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 
-
-                if (factoryIcon != null) {
-                    g.drawImage(factoryIcon.getImage(), 0, 0, getWidth(), getHeight(), this);
+                // Фон
+                if (factoryImage != null) {
+                    g.drawImage(factoryImage, 0, 0, getWidth(), getHeight(), this);
                 } else {
-                    g.setColor(Color.CYAN);
+                    // Рисуем фабрику цветами
+                    g.setColor(new Color(135, 206, 235)); // небо
                     g.fillRect(0, 0, getWidth(), getHeight());
-                    g.setColor(Color.GRAY);
-                    g.fillRect(100, 200, 600, 300);
+                    
+                    g.setColor(Color.DARK_GRAY); // здание
+                    g.fillRect(100, 250, 600, 250);
+                    
+                    g.setColor(Color.YELLOW); // окна
+                    for (int i = 0; i < 5; i++) {
+                        g.fillRect(150 + i*110, 280, 40, 40);
+                    }
+                    
+                    g.setColor(Color.BLACK); // труба
+                    g.fillRect(400, 200, 40, 50);
+                    g.setColor(Color.GRAY); // дым
+                    g.fillOval(390, 180, 60, 30);
                 }
                 
-
-                if (boxIcon != null) {
-                    g.drawImage(boxIcon.getImage(), boxX, boxY, 60, 60, this);
+                // Ящик
+                if (boxImage != null) {
+                    g.drawImage(boxImage, boxX, boxY, 60, 60, this);
                 } else {
-                    g.setColor(new Color(139, 69, 19));
+                    g.setColor(new Color(160, 82, 45)); // коричневый
                     g.fillRect(boxX, boxY, 60, 60);
+                    g.setColor(Color.WHITE);
+                    g.drawRect(boxX + 5, boxY + 5, 50, 50);
+                    g.drawString("BOX", boxX + 15, boxY + 35);
                 }
                 
                 // Текст
@@ -64,7 +104,7 @@ public class Factory extends JFrame {
             }
         };
         
-
+        // Клик
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -81,6 +121,7 @@ public class Factory extends JFrame {
             }
         });
         
+        // Таймер
         Timer timer = new Timer(50, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
